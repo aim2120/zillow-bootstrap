@@ -57,8 +57,14 @@ brew update
 
 # Install remaining packages from Brewfile (now that SSH keys are available)
 log_info "Installing remaining packages from Brewfile..."
-brew bundle install --file=Brewfile
-log_success "All packages installed from Brewfile"
+BREW_BUNDLE_SUCCESS=0
+brew bundle install --file=Brewfile || BREW_BUNDLE_SUCCESS=$?
+if [[ ${BREW_BUNDLE_SUCCESS} -eq 0 ]]; then
+    log_success "All packages installed from Brewfile"
+else
+    log_warning "Failed to install packages from Brewfile, please confirm before proceeding"
+    wait_for_user "When you're ready, press any key to continue..."
+fi
 
 # Install powerlevel10k theme for zsh (if not already configured via chezmoi)
 log_info "Setting up zsh with powerlevel10k..."
