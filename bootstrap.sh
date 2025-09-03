@@ -66,6 +66,9 @@ else
     wait_for_user "When you're ready, press any key to continue..."
 fi
 
+log_info "Installing mise..."
+curl https://mise.run | sh
+
 log_info "Installing oh-my-zsh..."
 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 
