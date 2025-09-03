@@ -66,6 +66,9 @@ else
     wait_for_user "When you're ready, press any key to continue..."
 fi
 
+log_info "Installing oh-my-zsh..."
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+
 # Install powerlevel10k theme for zsh (if not already configured via chezmoi)
 log_info "Setting up zsh with powerlevel10k..."
 if [[ ! -d "${HOME}/powerlevel10k" ]]; then
