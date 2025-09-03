@@ -27,7 +27,9 @@ ensure_dir "${FONT_DIR}"
 
 # Download and install each font
 for font in "${FONTS[@]}"; do
-    font_url="${FONT_BASE_URL}/${font}"
+    # URL encode the font name (replace spaces with %20)
+    font_url_encoded=$(echo "${font}" | sed 's/ /%20/g')
+    font_url="${FONT_BASE_URL}/${font_url_encoded}"
     font_path="${FONT_DIR}/${font}"
     
     if [[ -f "${font_path}" ]]; then
