@@ -76,6 +76,8 @@ if ! dir_exists ~/.oh-my-zsh; then
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 fi
 
+./setup-fonts.sh
+
 # Install powerlevel10k theme for zsh (if not already configured via chezmoi)
 log_info "Setting up zsh with powerlevel10k..."
 if [[ ! -d "${HOME}/powerlevel10k" ]]; then
