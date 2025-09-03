@@ -66,11 +66,15 @@ else
     wait_for_user "When you're ready, press any key to continue..."
 fi
 
-log_info "Installing mise..."
-curl https://mise.run | sh
+if ! command_exists mise; then
+    log_info "Installing mise..."
+    curl https://mise.run | sh
+fi
 
-log_info "Installing oh-my-zsh..."
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+if ! dir_exists ~/.oh-my-zsh; then
+    log_info "Installing oh-my-zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+fi
 
 # Install powerlevel10k theme for zsh (if not already configured via chezmoi)
 log_info "Setting up zsh with powerlevel10k..."
