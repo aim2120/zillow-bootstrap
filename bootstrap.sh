@@ -26,19 +26,20 @@ fi
 
 # Set up Git configuration (user will need to configure)
 log_info "Setting up Git configuration..."
-git config --global user.name "$(id -F)"
-git config --global user.email "$(id -un)@zillowgroup.com"
+USER_NAME="$(id -F)"
+USER_EMAIL="$(id -un)@zillowgroup.com"
+
+if [[ -z "${USER_NAME}" || -z "${USER_EMAIL}" ]]; then
+    log_error "User name or email not found"
+    exit 1
+fi
+git config --global user.name "${USER_NAME}"
+git config --global user.email "${USER_EMAIL}"
 
 # Install Homebrew if not present
 if ! command_exists brew; then
     log_info "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    
-    # Add Homebrew to PATH for Apple Silicon Macs
-    if [[ $(uname -m) == "arm64" ]]; then
-        eval "$(/opt/homebrew/bin/brew shellenv)"
-    fi
-    
     log_success "Homebrew installed successfully"
 else
     log_success "Homebrew already installed"
@@ -49,49 +50,19 @@ log_info "Updating Homebrew..."
 brew update
 
 # Install chezmoi first for early dotfile setup (including SSH keys)
-log_info "Installing chezmoi for early dotfile setup..."
-brew install chezmoi
-log_success "Chezmoi installed"
+./setup-chezmoi.sh
 
-if [[ ! -f ~/.chezmoidata.yaml ]]; then
-    log_warning "~/.chezmoidata.yaml does not exist"
-    log_info "Please create a ~/.chezmoidata.yaml file (this has been stored in Keeper)"
-    wait_for_user "When you're ready, press any key to continue..."
-fi
-
-# Set up chezmoi for dotfile management (including SSH keys and zshrc)
-log_info "Setting up chezmoi for dotfile management..."
-if [[ -d "$HOME/.local/share/chezmoi" ]]; then
-    log_warning "Chezmoi is already initialized"
-    if ! ask_confirmation "Do you want to reinitialize? This will overwrite existing configuration."; then
-        log_info "Keeping existing chezmoi configuration"
-    else
-        log_info "Reinitializing chezmoi..."
-        chezmoi init https://github.com/aim2120/dotfiles
-        chezmoi apply
-        log_success "Chezmoi reinitialized and dotfiles applied"
-    fi
-else
-    log_info "Initializing chezmoi with existing dotfiles repository..."
-    chezmoi init https://github.com/aim2120/dotfiles
-    log_info "Applying dotfiles (including SSH keys and zshrc)..."
-    chezmoi apply
-    log_success "Chezmoi initialized and dotfiles applied"
-fi
+# Xcode needed before brew install
+./setup-xcode.sh
 
 # Install remaining packages from Brewfile (now that SSH keys are available)
 log_info "Installing remaining packages from Brewfile..."
-if [[ -f "Brewfile" ]]; then
-    brew bundle install --file=Brewfile
-    log_success "All packages installed from Brewfile"
-else
-    log_error "Brewfile not found in current directory"
-    exit 1
-fi
+brew bundle install --file=Brewfile
+log_success "All packages installed from Brewfile"
 
 # Install powerlevel10k theme for zsh (if not already configured via chezmoi)
 log_info "Setting up zsh with powerlevel10k..."
-if [[ ! -d "$HOME/powerlevel10k" ]]; then
+if [[ ! -d "${HOME}/powerlevel10k" ]]; then
     git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
     log_success "Powerlevel10k installed"
 else
@@ -99,38 +70,19 @@ else
 fi
 
 # Source zshrc if it exists (created by chezmoi)
-if [[ -f ~/.zshrc ]]; then
-    source ~/.zshrc
+if [[ -f "${HOME}/.zshrc" ]]; then
+    source "${HOME}/.zshrc"
 else
     log_warning "~/.zshrc not found - you may need to restart your terminal or run 'source ~/.zshrc' manually"
 fi
 
-# Ask user if they want to install Xcode
-log_info "Xcode installation available via xcodes..."
-if ask_confirmation "Do you want to install Xcode now? This will take a while and requires Apple ID authentication."; then
-    log_info "Starting Xcode installation..."
-    if [[ -f "setup-xcode.sh" ]]; then
-        chmod +x setup-xcode.sh
-        if ./setup-xcode.sh; then
-            log_success "Xcode installation completed"
-        else
-            log_warning "Xcode installation had some issues, but continuing with bootstrap..."
-        fi
-    else
-        log_error "setup-xcode.sh not found"
-    fi
-else
-    log_info "Skipping Xcode installation"
-    log_info "You can run ./setup-xcode.sh later to install Xcode"
-fi
-
 # Create necessary directories
 log_info "Creating development directories..."
-ensure_dir ~/bin
-ensure_dir ~/scripts
-ensure_dir ~/External
-ensure_dir ~/zillow
-ensure_dir ~/Playgrounds
+ensure_dir "${HOME}/bin"
+ensure_dir "${HOME}/scripts"
+ensure_dir "${HOME}/External"
+ensure_dir "${HOME}/zillow"
+ensure_dir "${HOME}/Playgrounds"
 
 # Clean up
 log_info "Cleaning up..."

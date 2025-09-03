@@ -19,26 +19,24 @@ log_info "Fetching available Xcode versions..."
 xcodes list
 
 # Check if Xcode is already installed
-if [[ -d "/Applications/Xcode.app" ]]; then
-    CURRENT_VERSION=$(xcodebuild -version | head -n1 | awk '{print $2}')
+CURRENT_VERSION=$(xcodebuild -version | head -n1 | awk '{print $2}' || true)
+if [[ -n "${CURRENT_VERSION}" ]]; then
     log_warning "Xcode $CURRENT_VERSION is already installed"
-    if ! ask_confirmation "Do you want to install a different version? This will not remove the existing installation."; then
-        log_info "Keeping existing Xcode installation"
-        exit 0
-    fi
+    exit 0
 fi
 
 # Install Xcode
 log_info "Installing Xcode..."
 log_warning "This may take a while depending on your internet connection..."
 
-xcodes install --latest --experimental-unxip
+INSTALL_SUCCESS=0
+xcodes install --latest --experimental-unxip || INSTALL_SUCCESS=$?
 
-if [[ $? -eq 0 ]]; then
+if [[ ${INSTALL_SUCCESS} -eq 0 ]]; then
     log_success "Xcode installed successfully"
 else
-    log_error "Failed to install Xcode"
-    exit 1
+    log_warning "Xcode not installed fully, please confirm before proceeding"
+    wait_for_user "When you're ready, press any key to continue..."
 fi
 
 # Verify command line tools

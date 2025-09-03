@@ -9,14 +9,16 @@ source "$(dirname "$0")/helpers.sh"
 
 log_info "Setting up Chezmoi for dotfile management..."
 
-# Check if chezmoi is installed
-if ! command -v chezmoi &> /dev/null; then
-    log_error "Chezmoi is not installed. Please run bootstrap.sh first or install it manually:"
-    log_error "brew install chezmoi"
-    exit 1
+if [[ ! -f "$HOME/.local/share/chezmoi/.chezmoidata.yaml" ]]; then
+    log_error ~/.local/share/chezmoi/.chezmoidata.yaml does not exist
+    log_info "Please create a ~/.local/share/chezmoid/.chezmoidata.yaml file (this has been stored in Keeper)"
+    wait_for_user "When you're ready, press any key to continue..."
 fi
 
-log_success "Chezmoi is installed"
+# Check if chezmoi is installed
+if ! command -v chezmoi &> /dev/null; then
+    brew install chezmoi
+fi
 
 # Check if chezmoi is already initialized
 if [[ -d "$HOME/.local/share/chezmoi" ]]; then
