@@ -39,20 +39,13 @@ else
     wait_for_user "When you're ready, press any key to continue..."
 fi
 
-# Verify command line tools
-log_info "Verifying command line tools..."
-if xcode-select -p &> /dev/null; then
-    log_success "Command line tools are properly configured"
-else
-    log_warning "Command line tools may need manual configuration"
-fi
+INSTALLED_VERSION=$(xcodes list | grep -E "Installed" | awk '{print $2}')
+log_info "Installed Xcode version: ${INSTALLED_VERSION}"
+xcodes select "${INSTALLED_VERSION}"
 
 # Final verification
-log_info "Running final verification..."
-echo "Xcode version: $(xcodebuild -version | head -n1)"
-echo "Command line tools path: $(xcode-select -p)"
-echo "Available simulators:"
-xcrun simctl list devices | grep -E "(iPhone|iPad)" | head -5
+log_info "Verifying Xcode installation..."
+xcodebuild -version
+xcode-select -p
 
 log_success "🎉 Xcode installation completed successfully!"
-
