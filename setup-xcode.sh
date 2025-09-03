@@ -43,6 +43,8 @@ INSTALLED_VERSION=$(xcodes list | grep -E "Installed" | awk '{print $2}')
 log_info "Installed Xcode version: ${INSTALLED_VERSION}"
 xcodes select "${INSTALLED_VERSION}"
 
+sudo xcodebuild -license accept
+
 # Final verification
 log_info "Verifying Xcode installation..."
 xcodebuild -version
