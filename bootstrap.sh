@@ -55,10 +55,16 @@ brew update
 # Xcode needed before brew install
 ./setup-xcode.sh
 
-# Install remaining packages from Brewfile (now that SSH keys are available)
+# Install remaining packages from Brewfile (created by chezmoi)
 log_info "Installing remaining packages from Brewfile..."
 BREW_BUNDLE_SUCCESS=0
-brew bundle install --file=Brewfile || BREW_BUNDLE_SUCCESS=$?
+if [[ -f "${HOME}/.Brewfile" ]]; then
+    brew bundle install --file="${HOME}/.Brewfile" || BREW_BUNDLE_SUCCESS=$?
+else
+    log_error "Brewfile not found"
+    exit 1
+fi
+
 if [[ ${BREW_BUNDLE_SUCCESS} -eq 0 ]]; then
     log_success "All packages installed from Brewfile"
 else
@@ -71,21 +77,7 @@ if ! command_exists mise; then
     curl https://mise.run | sh
 fi
 
-if ! dir_exists ~/.oh-my-zsh; then
-    log_info "Installing oh-my-zsh..."
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-fi
-
 ./setup-fonts.sh
-
-# Install powerlevel10k theme for zsh (if not already configured via chezmoi)
-log_info "Setting up zsh with powerlevel10k..."
-if [[ ! -d "${HOME}/powerlevel10k" ]]; then
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
-    log_success "Powerlevel10k installed"
-else
-    log_success "Powerlevel10k already installed"
-fi
 
 # Source zshrc if it exists (created by chezmoi)
 if [[ -f "${HOME}/.zshrc" ]]; then
